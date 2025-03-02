@@ -24,69 +24,69 @@ NavigationKit — современный фреймворк для управл�
 
 ## Использование
 
-### Настройка менеджера навигации
+### 1. Создайте менеджер навигации
 
 ```swift
-import NavigationKit
-import SwiftUI
-
-@main
-struct MyApp: App {
-    // Создаем менеджер навигации
-    @StateObject private var navigationManager = NavigationKit.createNavigationManager()
-
-    var body: some Scene {
-        WindowGroup {
-            ContentView()
-                .withNavigationManager(navigationManager)
-        }
-    }
-}
+@StateObject private var navigationManager = NavigationKit.createNavigationManager()
 ```
 
-### Определение экранов
+### 2. Добавьте менеджер в ваше приложение
+
+```swift
+ContentView()
+    .withNavigationManager(navigationManager)
+```
+
+### 3. Опишите ваши экраны
 
 ```swift
 enum AppScreen: Screen, Hashable {
     case main
     case details(id: Int)
-    case settings
     
     var body: some View {
         switch self {
-        case .main:
-            MainView()
-        case .details(let id):
-            DetailsView(id: id)
-        case .settings:
-            SettingsView()
+        case .main: MainView()
+        case .details(let id): DetailsView(id: id)
         }
     }
 }
 ```
 
-### Использование контейнера навигации
+### 4. Настройте корневой экран
 
 ```swift
-struct ContentView: View {
-    @EnvironmentObject var navigationManager: NavigationManager
-    
-    var body: some View {
-        NavigationContainer(
-            navigationManager: navigationManager,
-            rootView: { MainView() },
-            destinationBuilder: { (screen: AppScreen) in screen.body }
-        )
-        .withNavigationModals(
-            navigationManager: navigationManager,
-            sheetContent: { (screen: AppScreen) in screen.body },
-            fullScreenCoverContent: { (screen: AppScreen) in screen.body }
-        )
-    }
+NavigationContainer(
+    navigationManager: navigationManager,
+    rootView: { MainView() },
+    destinationBuilder: { (screen: AppScreen) in screen.body }
+)
+```
+
+### 5. Переходите между экранами
+
+```swift
+@EnvironmentObject var navigationManager: NavigationManager
+
+// Переход на новый экран:
+Button("Открыть детали") {
+    navigationManager.path.append(AppScreen.details(id: 42))
+}
+
+// Возврат назад:
+Button("Назад") {
+    navigationManager.path.removeLast()
+}
+
+// Возврат в начало:
+Button("На главную") {
+    navigationManager.path.removeAll()
 }
 ```
 
-### Переход между экранами
+### Простой пример
+
+#### Главный экран
 
 ```swift
 struct MainView: View {
@@ -94,31 +94,17 @@ struct MainView: View {
     
     var body: some View {
         VStack {
-            Button("Перейти к деталям") {
-                navigationManager.navigate(to: AppScreen.details(id: 1))
-            }
+            Text("Главный экран")
             
-            Button("Открыть настройки в модальном окне") {
-                navigationManager.presentSheet(AppScreen.settings)
-            }
-            
-            Button("Показать диалог подтверждения") {
-                let dialogData = ConfirmationDialogData(
-                    title: "Подтверждение",
-                    message: "Вы уверены?",
-                    buttons: [
-                        DialogButton(title: "Да", action: { /* действие при подтверждении */ }),
-                        DialogButton(title: "Отмена", style: .cancel, action: {})
-                    ]
-                )
-                navigationManager.presentConfirmationDialog(dialogData)
+            Button("Открыть детали") {
+                navigationManager.path.append(AppScreen.details(id: 123))
             }
         }
     }
 }
 ```
 
-### Возврат назад
+#### Экран с деталями
 
 ```swift
 struct DetailsView: View {
@@ -127,37 +113,15 @@ struct DetailsView: View {
     
     var body: some View {
         VStack {
-            Text("Экран деталей #\(id)")
+            Text("Детали №\(id)")
             
-            Button("Вернуться назад") {
-                navigationManager.navigateBack()
-            }
-            
-            Button("Вернуться на главный экран") {
-                navigationManager.navigateToRoot()
+            Button("Назад") {
+                navigationManager.path.removeLast()
             }
         }
     }
 }
 ```
-
-## Пример использования
-
-В директории `Examples/NavigationKitDemo` содержится полноценный пример использования фреймворка NavigationKit. Пример демонстрирует:
-
-- Настройку `NavigationManager` в приложении
-- Стековую навигацию с параметрами
-- Модальные окна (`sheet` и `fullScreenCover`)
-- Навигацию назад и к корневому экрану
-- Типобезопасность при работе с экранами
-
-Чтобы запустить пример, создайте новый проект iOS-приложения и добавьте в него файлы из директории `Examples`:
-
-- `NavigationKitDemoApp.swift`
-- `ContentView.swift`
-
-Этот код содержит подробные комментарии, которые помогут разобраться с основными концепциями и возможностями NavigationKit.
-
 ## Основные компоненты
 
 ### `NavigationManager`
