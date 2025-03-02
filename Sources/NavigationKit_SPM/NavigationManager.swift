@@ -127,9 +127,6 @@ public final class NavigationManager: @preconcurrency NavigationStateProtocol {
     /// Логирование действий навигации
     private func logNavigationAction(_ action: NavigationAction) {
         navigationHistory.append(action)
-        #if DEBUG
-        print("Navigation: \(action)")
-        #endif
     }
 }
 
